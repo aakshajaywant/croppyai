@@ -1,0 +1,41 @@
+# --- Croppy .gitignore ---
+# Keep: docs/ (the app, incl. docs/model and docs/model_beans files), training/*.ipynb, README.md
+
+# Training data and exports (large; re-created by the Colab notebooks)
+*.zip
+data/
+data_coffee/
+data_beans/
+raw/
+pool/
+export_*/
+saved_model/
+field_test/
+*.tflite
+*.h5
+*.keras
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+
+# Node (only if you ever install tools locally)
+node_modules/
+
+# Secrets — never commit keys or tokens
+.env
+.env.*
+*.pem
+*.key
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log

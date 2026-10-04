@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="sw">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#23502F">
+<title>Croppy · coffee farm helper</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+@font-face{font-family:"Atkinson";src:url(fonts/atkinson-hyperlegible-latin-400-normal.woff2) format("woff2");font-weight:400;font-display:swap}
+@font-face{font-family:"Atkinson";src:url(fonts/atkinson-hyperlegible-latin-700-normal.woff2) format("woff2");font-weight:700;font-display:swap}
+:root{--leaf:#23502F;--mist:#E8F1EC;--ink:#14231A;--cherry:#9E1B32;--amber:#8A5300;--paper:#FFFFFF;--line:#C9D8CE;--soft:#3d5a46;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:inherit}
+html,body{margin:0;height:100%}
+body{font-family:"Atkinson",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:18px;line-height:1.45;color:var(--ink);background:var(--paper);display:flex;flex-direction:column}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;background:var(--leaf);color:#fff}
+header h1{font-size:24px;margin:0}
+header small{display:block;font-size:14px;opacity:.85;font-weight:400}
+.lang{background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7);border-radius:999px;padding:8px 14px;font:inherit;font-size:16px;min-height:44px}
+main{flex:1;overflow-y:auto;padding:18px;max-width:560px;width:100%;margin:0 auto}
+nav{display:flex;border-top:2px solid var(--line);background:var(--paper)}
+nav button{flex:1;min-height:62px;border:0;background:none;font:inherit;font-size:14px;color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;position:relative}
+nav svg{width:24px;height:24px}
+nav button[aria-current="true"]{font-weight:700;color:var(--leaf);box-shadow:inset 0 4px 0 var(--leaf)}
+nav .dot{position:absolute;top:8px;right:calc(50% - 20px);width:12px;height:12px;border-radius:50%;background:var(--cherry);border:2px solid #fff}
+button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,label:focus-within{outline:3px solid var(--cherry);outline-offset:2px}
+.view[hidden]{display:none}
+h2.h{font-size:22px;margin:4px 0 12px}
+.shoot{display:flex;flex-direction:column;align-items:center;padding:24px 0 8px;text-align:center}
+.shoot label{width:220px;height:220px;border-radius:50%;background:var(--leaf);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;cursor:pointer;font-size:20px;font-weight:700;padding:20px}
+.shoot label svg{width:72px;height:72px}
+.hidden-input{position:absolute;opacity:0;width:1px;height:1px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:0;border:2px solid var(--leaf);border-radius:999px;overflow:hidden;max-width:360px;margin:4px auto 0}
+.seg button{min-height:52px;border:0;background:var(--paper);color:var(--leaf);font:inherit;font-weight:700;font-size:18px}
+.seg button[aria-pressed="true"]{background:var(--leaf);color:#fff}
+.box{background:var(--mist);border-radius:14px;padding:14px 18px;margin:16px 0}
+.box p{margin:.25em 0}
+.box h3{margin:0 0 6px;font-size:18px}
+.status{font-size:15px;color:var(--soft);margin-top:14px;text-align:center}
+.warn{color:var(--amber);font-weight:700}
+.small{font-size:14px;color:var(--soft)}
+.photo{width:100%;aspect-ratio:1;object-fit:cover;border-radius:14px;display:block}
+.verdict{margin-top:-28px;position:relative;border-radius:14px;padding:18px;color:#fff;background:var(--leaf)}
+.verdict.problem{background:var(--cherry)}.verdict.unsure{background:var(--amber)}
+.verdict h2{margin:0 0 6px;font-size:26px;line-height:1.15}
+.conf{display:flex;align-items:center;gap:10px;font-size:15px}
+.bar{flex:1;height:10px;border-radius:5px;background:rgba(255,255,255,.3);overflow:hidden}.bar i{display:block;height:100%;background:#fff}
+.advice{font-size:19px;margin:18px 2px}
+.context{border-left:5px solid var(--amber);padding:6px 12px;margin:0 2px 16px;font-size:16px}
+.actions{display:grid;gap:12px}
+.btn{min-height:56px;border-radius:12px;border:2px solid var(--leaf);background:var(--paper);color:var(--leaf);font:inherit;font-weight:700;font-size:18px;display:flex;align-items:center;justify-content:center;gap:10px;padding:0 16px;width:100%;cursor:pointer}
+.btn.main{background:var(--leaf);color:#fff}.btn svg{width:24px;height:24px;flex:none}.btn[disabled]{opacity:.5}
+.alert{border-radius:14px;padding:14px 16px;margin:0 0 12px;border:2px solid var(--line)}
+.alert.high{border-color:var(--cherry);background:#FBECEE}.alert.medium{border-color:var(--amber);background:#FBF3E6}.alert.info{background:var(--mist);border-color:var(--mist)}
+.alert b{display:block;font-size:19px}.alert p{margin:.3em 0 0}
+.level{display:inline-block;font-size:13px;font-weight:700;border-radius:999px;padding:2px 10px;margin-bottom:6px;color:#fff;background:var(--soft)}
+.alert.high .level{background:var(--cherry)}.alert.medium .level{background:var(--amber)}
+.field{display:block;margin:0 0 14px}.field span{display:block;font-weight:700;margin-bottom:6px}
+.field input,.field select{width:100%;min-height:52px;border:2px solid var(--line);border-radius:10px;padding:0 12px;font:inherit;background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.check{display:flex;gap:12px;align-items:flex-start;margin:0 0 14px}.check input{width:26px;height:26px;margin-top:2px;flex:none}
+.price{font-size:28px;font-weight:700;line-height:1.1;margin:4px 0}
+.spark{display:flex;align-items:flex-end;gap:4px;height:44px;margin:8px 0 2px}.spark i{flex:1;background:var(--leaf);border-radius:3px 3px 0 0;opacity:.75}
+.offer{border-radius:14px;padding:16px;margin:14px 0;color:#fff;background:var(--leaf)}
+.offer.low{background:var(--cherry)}.offer.high{background:#1d5f74}.offer b{font-size:22px;display:block}
+.crop{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end;margin-bottom:10px}
+.crop .lbl{font-weight:700;align-self:center}
+.crop input{width:100%;min-height:48px;border:2px solid var(--line);border-radius:10px;padding:0 10px;font:inherit}
+.rec{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.rec img,.rec .ic{width:64px;height:64px;border-radius:8px;object-fit:cover;background:var(--mist);display:flex;align-items:center;justify-content:center;font-size:28px}
+.rec b{display:block}.rec span{font-size:14px;color:var(--soft)}
+.tag{display:inline-block;font-size:13px;border-radius:999px;padding:2px 10px;margin-top:4px;background:var(--mist);color:var(--leaf);font-style:normal}
+.tag.queued{background:#FBEFD9;color:var(--amber)}
+.empty{text-align:center;padding:30px 10px;color:var(--soft)}
+.demo{background:#FBF3E6;color:var(--amber);font-weight:700;font-size:14px;text-align:center;padding:6px 10px}
+@media (prefers-reduced-motion:no-preference){.verdict,.offer{animation:rise .35s ease-out}@keyframes rise{from{transform:translateY(12px);opacity:0}to{transform:none;opacity:1}}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Croppy<small data-t="tagline"></small></h1>
+  <button class="lang" id="langBtn" type="button"></button>
+</header>
+<div class="demo" id="demoBanner" hidden data-t="demoBanner"></div>
+
+<main>
+<!-- ================= CHECK ================= -->
+<section class="view" id="v-check">
+  <div class="seg" role="group" id="cropSeg"><button type="button" data-crop="coffee" data-t="cropCoffee"></button><button type="button" data-crop="beans" data-t="cropBeans"></button></div>
+  <div class="shoot">
+    <label for="cam"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="4"/></svg><span data-t="shoot"></span></label>
+    <input id="cam" class="hidden-input" type="file" accept="image/*" capture="environment">
+  </div>
+  <p class="status" id="modelStatus"></p>
+  <div class="box"><p><b data-t="tipsTitle"></b></p><p data-t="tip1"></p><p data-t="tip2"></p><p data-t="tip3"></p></div>
+</section>
+
+<!-- ================= RESULT ================= -->
+<section class="view" id="v-result" hidden>
+  <img class="photo" id="photo" alt="">
+  <div class="verdict" id="verdict"><h2 id="vTitle"></h2><div class="conf"><span id="vConfLabel"></span><div class="bar"><i id="vBar"></i></div></div></div>
+  <p class="advice" id="vAdvice"></p>
+  <p class="context" id="vContext" hidden></p>
+  <p class="small" id="vAlt" hidden></p>
+  <div class="actions">
+    <button class="btn main" id="playBtn" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-t="listen"></span></button>
+    <button class="btn" id="saveBtn" type="button"><span data-t="save"></span></button>
+    <button class="btn" id="smsBtn" type="button"><span data-t="sendOfficer"></span></button>
+    <button class="btn" id="againBtn" type="button"><span data-t="again"></span></button>
+  </div>
+  <p class="small" data-t="humanNote"></p>
+</section>
+
+<!-- ================= ALERTS ================= -->
+<section class="view" id="v-alerts" hidden>
+  <h2 class="h" data-t="alertsTitle"></h2>
+  <div id="alertList"></div>
+  <div class="box" id="climateBox"></div>
+  <div class="box" id="soilBox"></div>
+  <p class="small" data-t="alertsNote"></p>
+</section>
+
+<!-- ================= SELL ================= -->
+<section class="view" id="v-sell" hidden>
+  <h2 class="h" data-t="sellTitle"></h2>
+  <label class="field"><span data-t="whatSell"></span><select id="sellItem"></select></label>
+  <div class="box" id="priceBox"></div>
+  <div class="row2">
+    <label class="field"><span data-t="kgToSell"></span><input type="number" inputmode="decimal" min="0" id="sellKg"></label>
+    <label class="field"><span data-t="buyerOffer"></span><input type="number" inputmode="decimal" min="0" id="sellOffer"></label>
+  </div>
+  <div id="offerBox"></div>
+  <div class="actions">
+    <button class="btn main" id="sellPlay" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span data-t="listen"></span></button>
+    <button class="btn" id="sellSave" type="button"><span data-t="recordSale"></span></button>
+  </div>
+  <div class="box">
+    <h3 data-t="harvestTitle"></h3>
+    <div class="row2">
+      <label class="field"><span data-t="crop"></span><select id="harvCrop"></select></label>
+      <label class="field"><span data-t="kgHarvested"></span><input type="number" inputmode="decimal" min="0" id="harvKg"></label>
+    </div>
+    <button class="btn" id="harvSave" type="button"><span data-t="recordHarvest"></span></button>
+    <div id="stockBox" style="margin-top:12px"></div>
+  </div>
+  <p class="small" data-t="sellNote"></p>
+</section>
+
+<!-- ================= MY FARM ================= -->
+<section class="view" id="v-farm" hidden>
+  <h2 class="h" data-t="farmTitle"></h2>
+  <p class="small" data-t="farmWhy"></p>
+  <label class="field"><span data-t="sName"></span><input type="text" id="fName" autocomplete="name"></label>
+  <div class="row2">
+    <label class="field"><span data-t="village"></span><input type="text" id="fVillage"></label>
+    <label class="field"><span data-t="memberNo"></span><input type="text" id="fMember"></label>
+  </div>
+  <label class="field"><span data-t="myPhone"></span><input type="tel" id="fPhone"></label>
+  <p><b data-t="myCrops"></b></p>
+  <div class="crop small"><span></span><span data-t="areaAcres"></span><span data-t="trees"></span></div>
+  <div id="cropRows"></div>
+  <label class="check"><input type="checkbox" id="sGps"><span data-t="sGps"></span></label>
+  <label class="check"><input type="checkbox" id="fConsent"><span data-t="consent"></span></label>
+  <button class="btn main" id="regBtn" type="button"><span data-t="shareCoop"></span></button>
+  <p class="small" id="regStatus"></p>
+
+  <h2 class="h" style="margin-top:28px" data-t="contactsTitle"></h2>
+  <label class="field"><span data-t="sOfficer"></span><input type="tel" id="sOfficer" placeholder="+256 7xx xxx xxx"></label>
+  <label class="field"><span data-t="sCoop"></span><input type="tel" id="sCoop"></label>
+
+  <div class="box"><h3 data-t="dataTitle"></h3><p id="modelInfo"></p><p id="packInfo"></p>
+    <label class="btn" for="modelFiles" style="margin-top:10px"><span data-t="loadModel"></span></label>
+    <input type="file" id="modelFiles" class="hidden-input" multiple accept=".json,.bin">
+    <label class="btn" for="packFile" style="margin-top:10px"><span data-t="loadPack"></span></label>
+    <input type="file" id="packFile" class="hidden-input" accept=".json">
+    <p class="small" data-t="loadHelp"></p></div>
+  <div class="box"><h3 data-t="privacyTitle"></h3><p class="small" data-t="privacy"></p></div>
+  <button class="btn" id="wipeBtn" type="button"><span data-t="wipe"></span></button>
+</section>
+
+<!-- ================= RECORDS ================= -->
+<section class="view" id="v-records" hidden>
+  <h2 class="h" data-t="navRecords"></h2>
+  <div id="recList"></div>
+  <div class="actions" style="margin-top:18px"><button class="btn" id="csvBtn" type="button"><span data-t="exportCsv"></span></button></div>
+</section>
+</main>
+
+<nav>
+  <button type="button" data-view="check" aria-current="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span data-t="navCheck"></span></button>
+  <button type="button" data-view="alerts"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17v.5"/></svg><span data-t="navAlerts"></span><i class="dot" id="alertDot" hidden></i></button>
+  <button type="button" data-view="sell"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 12 12 3h8v8l-9 9z"/><circle cx="16" cy="7" r="1.5"/></svg><span data-t="navSell"></span></button>
+  <button type="button" data-view="farm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg><span data-t="navFarm"></span></button>
+  <button type="button" data-view="records"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7"/></svg><span data-t="navRecords"></span></button>
+</nav>
+
+<script src="vendor/tf.min.js"></script>
+<script>
+/* =====================================================================
+   Croppy: offline coffee-farm helper (Small AI for Development, Annex B)
+   AI: on-phone image model (leaf health). Everything else is transparent
+   rules over an offline "region pack". Nothing leaves the phone unless
+   the farmer reviews and sends an SMS herself.
+   ===================================================================== */
+
+/* ---------- UI text. Kiswahili is a draft: have a native speaker review it. ---------- */
+const UI={
+sw:{langName:"English",tagline:"Msaidizi wa shamba la kahawa",shoot:"Piga picha ya jani",cropCoffee:"Kahawa",cropBeans:"Maharagwe",wCoffee:"kahawa",wBeans:"maharagwe",otherT:"Si jani la {c}",otherB:"Picha hii haionekani kuwa jani la {c}. Croppy hukagua majani ya kahawa na maharagwe tu. Kama ni jani la {c}, piga picha nyingine karibu zaidi.",modelsLine:"Kahawa: {c}. Maharagwe: {b}.",none:"hakuna",tipsTitle:"Kwa picha nzuri:",tip1:"Jani moja tu, lijaze kwenye picha.",tip2:"Mwanga wa mchana, si jua kali moja kwa moja.",tip3:"Geuza jani uone upande wa chini pia.",
+ loading:"Inapakia akili ya simu…",ready:"Tayari. Inafanya kazi bila intaneti.",noModel:"Bado hakuna model ya zao hili. Fungua Shamba ili kuiweka.",
+ confidence:"Uhakika",listen:"Sikiliza",save:"Hifadhi kumbukumbu",saved:"Imehifadhiwa",sendOfficer:"Tuma kwa afisa ugani",again:"Kagua jani lingine",
+ humanNote:"Huu ni ushauri tu. Wewe na afisa ugani ndio mnaoamua. Usinyunyize dawa kabla ya kuongea na afisa ugani.",
+ maybe:"Huenda ni {a} au {b}. Mwonyeshe mtu.",tooDark:"Picha ni giza sana.",tooBlurry:"Picha haiko wazi.",
+ ctxRust:"Hali ya hewa ya wiki mbili zilizopita inasaidia kutu kuenea. Usichelewe: mjulishe afisa ugani leo.",ctxPhoma:"Kulikuwa na usiku wa baridi hivi karibuni, unaoweza kusababisha madoa ya Phoma.",ctxHealthy:"Kama mavuno yamepungua, angalia pia Tahadhari na hali ya udongo.",
+ navCheck:"Kagua",navAlerts:"Tahadhari",navSell:"Uza",navFarm:"Shamba",navRecords:"Kumbukumbu",
+ alertsTitle:"Tahadhari za shamba",alertsNote:"Tahadhari hizi zinatokana na sheria rahisi za hali ya hewa, si utabiri wa uhakika. Zinakuambia lini uangalie shamba, si dawa ya kutumia.",
+ noAlerts:"Hakuna tahadhari kwa sasa.",lvHigh:"Juu",lvMedium:"Wastani",lvInfo:"Taarifa",
+ aRustT:"Hatari ya kutu ya majani",aRustB:"Siku {n} kati ya 14 zilikuwa na mvua, unyevu na joto la wastani. Kagua majani 10 kwenye miti 10 wiki hii.",
+ aColdT:"Usiku wa baridi",aColdB:"Siku {n} wiki hii joto lilishuka chini ya 10°C. Angalia majani machanga kwa madoa meusi.",
+ aDryT:"Ukavu",aDryB:"Mvua ya siku 21 ni {mm} mm tu, chini ya kawaida kwa mwezi huu. Funika udongo kwa matandazo ili kuhifadhi unyevu.",
+ aHeatT:"Joto kali",aHeatB:"Siku {n} zilizidi 30°C. Kivuli husaidia kahawa.",
+ aHarvT:"Msimu wa mavuno: {c}",aHarvB:"Kabla ya kuuza, angalia bei ya haki kwenye Uza.",
+ aStale:"Data ya hali ya hewa ni ya {d}. Tahadhari huenda zimepitwa na wakati. Nunua kifurushi cha data ili kusasisha.",
+ climTitle:"Hali ya hewa: siku 30",climBody:"Mvua: {r} mm (kawaida ya mwezi: {n} mm). Joto: {lo}°C hadi {hi}°C.",
+ soilTitle:"Udongo",soilAcid:"pH {ph}: udongo una tindikali. Muulize afisa ugani kuhusu chokaa.",soilOk:"pH {ph}: inafaa kwa kahawa.",soilN:"Naitrojeni iko chini ({v} g/kg). Muulize afisa ugani kuhusu mbolea.",soilSoc:"Mboji iko chini ({v} g/kg). Matandazo na samadi husaidia.",
+ sellTitle:"Bei ya haki kabla ya kuuza",whatSell:"Unauza nini?",kgToSell:"Kilo za kuuza",buyerOffer:"Bei ya mnunuzi kwa kilo",
+ fairRange:"Bei ya haki mwezi huu (kwa kilo)",trendUp:"Bei imepanda miezi 3 iliyopita.",trendDown:"Bei imeshuka miezi 3 iliyopita.",trendFlat:"Bei haijabadilika sana miezi 3 iliyopita.",
+ priceStale:"Bei hii ni ya {d}. Huenda imepitwa na wakati: uliza ushirika kabla ya kuitumia.",
+ offerLow:"Bei hii iko {p}% chini ya kiwango cha haki.",offerLowB:"Unaweza kuomba bei zaidi, au kuuliza ushirika au wanunuzi wengine.",offerOk:"Bei hii iko ndani ya kiwango cha haki.",offerHigh:"Bei hii iko juu ya kiwango cha kawaida.",
+ offerTotal:"Jumla ya mnunuzi: {t}. Kwa bei ya haki: {a} hadi {b}.",recordSale:"Hifadhi mauzo",saleSaved:"Mauzo yamehifadhiwa",
+ harvestTitle:"Mavuno na akiba",crop:"Zao",kgHarvested:"Kilo zilizovunwa",recordHarvest:"Hifadhi mavuno",
+ stockLine:"{c}: umevuna {h} kg, umeuza {s} kg, imebaki {r} kg. Thamani kwa bei ya haki: {v}.",yieldLine:"Mavuno kwa hekta: {y} kg (wastani wa taifa: {n} kg).",
+ sellNote:"Croppy haikuambii lini uuze. Bei hubadilika kila siku. Wewe ndiye unayeamua.",
+ farmTitle:"Shamba langu",farmWhy:"Rekodi hii inakusaidia wewe na ushirika: inaonyesha mavuno kwa hekta na inakuwezesha kufikiwa na huduma.",
+ sName:"Jina lako",village:"Kijiji",memberNo:"Namba ya mwanachama",myPhone:"Namba yako ya simu",myCrops:"Mazao yangu",areaAcres:"Ekari",trees:"Miti",
+ sGps:"Ongeza mahali (GPS) kwenye kumbukumbu. Inabaki kwenye simu hii.",consent:"Nakubali kushiriki rekodi hii ya shamba na ushirika wangu.",shareCoop:"Tuma rekodi kwa ushirika",
+ needConsent:"Weka alama ya kukubali kwanza.",needCoop:"Weka namba ya ushirika kwanza.",regSent:"Rekodi ilifunguliwa kwenye SMS {d}.",
+ contactsTitle:"Mawasiliano",sOfficer:"Namba ya afisa ugani",sCoop:"Namba ya ushirika",
+ dataTitle:"Data kwenye simu",loadModel:"Weka faili za model",loadPack:"Weka kifurushi cha eneo (region pack)",loadHelp:"Faili zinaweza kutumwa kwa Bluetooth au WhatsApp.",
+ modelLoaded:"madaraja {n}, uhakika {t}%",modelBad:"Faili hizi hazikufanya kazi. Chagua model.json, faili za .bin na metadata.json pamoja.",
+ packLoaded:"Kifurushi cha eneo: {r}, kimetengenezwa {d}.",noPack:"Hakuna kifurushi cha eneo.",packBad:"Faili hii si kifurushi cha eneo.",
+ privacyTitle:"Faragha",privacy:"Picha na kumbukumbu zinabaki kwenye simu hii tu. Hakuna kinachotumwa mpaka ubonyeze kitufe cha kutuma, na hata hapo unaona ujumbe kabla ya kuutuma.",
+ wipe:"Futa kumbukumbu zote",wipeAsk:"Futa kumbukumbu zote kwenye simu hii?",needOfficer:"Weka namba ya afisa ugani kwenye Shamba kwanza.",
+ exportCsv:"Hamisha kama CSV",emptyRec:"Bado hakuna kumbukumbu.",queued:"Inasubiri kutumwa",sent:"Imetumwa",sale:"Mauzo",harvest:"Mavuno",
+ smsHead:"Croppy: ripoti ya ukaguzi wa majani",demoBanner:"Data ya mfano (synthetic). Weka kifurushi halisi kabla ya kutumia."},
+en:{langName:"Kiswahili",tagline:"Coffee farm helper",shoot:"Photograph a leaf",cropCoffee:"Coffee",cropBeans:"Beans",wCoffee:"coffee",wBeans:"bean",otherT:"Not a {c} leaf",otherB:"This photo does not look like a {c} leaf. Croppy only checks coffee and bean leaves. If it is a {c} leaf, take another, closer photo.",modelsLine:"Coffee: {c}. Beans: {b}.",none:"none",tipsTitle:"For a good photo:",tip1:"One leaf only, filling the frame.",tip2:"Daylight, not harsh direct sun.",tip3:"Turn the leaf and check the underside too.",
+ loading:"Loading the on-phone model…",ready:"Ready. Works without internet.",noModel:"No model for this crop yet. Open My farm to load it.",
+ confidence:"Confidence",listen:"Listen",save:"Save record",saved:"Saved",sendOfficer:"Send to extension officer",again:"Check another leaf",
+ humanNote:"This is advice only. You and your extension officer make the decision. Do not spray before talking to the extension officer.",
+ maybe:"It might be {a} or {b}. Show it to a person.",tooDark:"The photo is too dark.",tooBlurry:"The photo is blurry.",
+ ctxRust:"The last two weeks of weather favour rust spreading. Don't wait: tell the extension officer today.",ctxPhoma:"There were cold nights recently, which can cause Phoma spots.",ctxHealthy:"If yields have dropped, also check Alerts and the soil notes.",
+ navCheck:"Check",navAlerts:"Alerts",navSell:"Sell",navFarm:"My farm",navRecords:"Records",
+ alertsTitle:"Farm alerts",alertsNote:"These alerts come from simple weather rules, not a precise forecast. They tell you when to look at your farm, not what to spray.",
+ noAlerts:"No alerts right now.",lvHigh:"High",lvMedium:"Medium",lvInfo:"Info",
+ aRustT:"Coffee leaf rust risk",aRustB:"{n} of the last 14 days were wet, humid and mild. Check 10 leaves on 10 trees this week.",
+ aColdT:"Cold nights",aColdB:"On {n} nights this week it dropped below 10°C. Check young leaves for dark spots.",
+ aDryT:"Dry spell",aDryB:"Only {mm} mm of rain in 21 days, below normal for this month. Mulch the soil to keep moisture in.",
+ aHeatT:"Heat",aHeatB:"{n} days went above 30°C. Shade helps coffee.",
+ aHarvT:"Harvest season: {c}",aHarvB:"Before you sell, check the fair price on Sell.",
+ aStale:"Weather data is from {d}. Alerts may be out of date. Buy a data bundle to update.",
+ climTitle:"Weather: last 30 days",climBody:"Rain: {r} mm (normal for the month: {n} mm). Temperature: {lo}°C to {hi}°C.",
+ soilTitle:"Soil",soilAcid:"pH {ph}: the soil is acidic. Ask the extension officer about lime.",soilOk:"pH {ph}: suitable for coffee.",soilN:"Nitrogen is low ({v} g/kg). Ask the extension officer about fertiliser.",soilSoc:"Organic matter is low ({v} g/kg). Mulch and manure help.",
+ sellTitle:"Fair price before you sell",whatSell:"What are you selling?",kgToSell:"Kilograms to sell",buyerOffer:"Buyer's price per kg",
+ fairRange:"Fair price this month (per kg)",trendUp:"Prices rose over the last 3 months.",trendDown:"Prices fell over the last 3 months.",trendFlat:"Prices were steady over the last 3 months.",
+ priceStale:"This price is from {d}. It may be out of date: ask the co-op before using it.",
+ offerLow:"This offer is {p}% below the fair range.",offerLowB:"You could ask for more, or check with the co-op or other buyers.",offerOk:"This offer is within the fair range.",offerHigh:"This offer is above the usual range.",
+ offerTotal:"Buyer's total: {t}. At the fair price: {a} to {b}.",recordSale:"Record sale",saleSaved:"Sale recorded",
+ harvestTitle:"Harvest and stock",crop:"Crop",kgHarvested:"Kilograms harvested",recordHarvest:"Record harvest",
+ stockLine:"{c}: harvested {h} kg, sold {s} kg, {r} kg left. Worth at the fair price: {v}.",yieldLine:"Yield per hectare: {y} kg (national average: {n} kg).",
+ sellNote:"Croppy does not tell you when to sell. Prices change every day. You decide.",
+ farmTitle:"My farm",farmWhy:"This record helps you and your co-op: it shows yield per hectare and lets services reach you.",
+ sName:"Your name",village:"Village",memberNo:"Co-op member number",myPhone:"Your phone number",myCrops:"My crops",areaAcres:"Acres",trees:"Trees",
+ sGps:"Add location (GPS) to records. It stays on this phone.",consent:"I agree to share this farm record with my co-op.",shareCoop:"Send record to co-op",
+ needConsent:"Tick the consent box first.",needCoop:"Add the co-op number first.",regSent:"Record opened in SMS on {d}.",
+ contactsTitle:"Contacts",sOfficer:"Extension officer's number",sCoop:"Co-op number",
+ dataTitle:"Data on this phone",loadModel:"Load model files",loadPack:"Load region pack",loadHelp:"Files can be shared over Bluetooth or WhatsApp.",
+ modelLoaded:"{n} classes, threshold {t}%",modelBad:"These files did not work. Pick model.json, the .bin files and metadata.json together.",
+ packLoaded:"Region pack: {r}, built {d}.",noPack:"No region pack.",packBad:"This file is not a region pack.",
+ privacyTitle:"Privacy",privacy:"Photos and records stay on this phone only. Nothing is sent until you tap a send button, and even then you see the message before sending it.",
+ wipe:"Delete all records",wipeAsk:"Delete all records on this phone?",needOfficer:"Add the extension officer's number in My farm first.",
+ exportCsv:"Export as CSV",emptyRec:"No records yet.",queued:"Waiting to send",sent:"Sent",sale:"Sale",harvest:"Harvest",
+ smsHead:"Croppy: leaf check report",demoBanner:"Demo data (synthetic). Load a real region pack before use."}
+};
+
+/* ---------- Leaf advisories: a FIXED list. The model only picks a key; it never writes text. No chemical doses. ---------- */
+const ADVICE={
+ rust:{kind:"problem",sw:{t:"Kutu ya majani",a:"Unga wa rangi ya chungwa upande wa chini wa jani. Ugonjwa huu huenea haraka wakati wa mvua. Pogoa ili hewa ipite vizuri na rekebisha kivuli. Usinyunyize dawa kabla ya kuongea na afisa ugani. Mtumie ripoti hii leo."},
+   en:{t:"Coffee leaf rust",a:"Orange powder on the underside of the leaf. It spreads fast in wet weather. Prune so air can move and adjust the shade. Do not spray before talking to the extension officer. Send them this report today."}},
+ miner:{kind:"problem",sw:{t:"Mdudu mchimba majani",a:"Madoa makubwa ya kahawia yasiyo na umbo maalum, na njia za funza ndani ya jani. Majani machache si hatari kubwa. Hesabu majani yaliyoathirika kwenye miti kumi. Kama ni mengi, wasiliana na afisa ugani. Dawa zisizo za lazima huua wadudu wanaosaidia."},
+   en:{t:"Coffee leaf miner",a:"Large irregular brown patches, with larva tunnels inside the leaf. A few leaves is not a big risk. Count affected leaves on ten trees. If there are many, contact the extension officer. Unnecessary spraying kills the insects that help you."}},
+ cercospora:{kind:"problem",sw:{t:"Doa la jicho (Cercospora)",a:"Madoa ya kahawia yenye kituo cheupe kama jicho. Mara nyingi hutokea mti ukikosa mbolea, maji au kivuli. Muulize afisa ugani kuhusu mbolea na kivuli kwa shamba lako."},
+   en:{t:"Brown eye spot (Cercospora)",a:"Brown spots with a pale centre, like an eye. It often appears when a tree lacks nutrients, water or shade. Ask the extension officer about fertiliser and shade for your plot."}},
+ phoma:{kind:"problem",sw:{t:"Doa la Phoma",a:"Madoa meusi kwenye ncha na kingo za majani machanga, hasa wakati wa baridi na upepo mkali. Miti ya kuzuia upepo husaidia. Mwonyeshe afisa ugani."},
+   en:{t:"Phoma leaf spot",a:"Dark patches on the tips and edges of young leaves, mostly in cold, windy weather. Windbreak trees help. Show it to the extension officer."}},
+ healthy:{kind:"ok",sw:{t:"Jani linaonekana zima",a:"Hakuna ugonjwa wa majani ulioonekana kwenye picha hii. Kama mavuno bado yanapungua, sababu inaweza kuwa udongo, mbolea, maji au magonjwa ya matunda. Muulize afisa ugani."},
+   en:{t:"Leaf looks healthy",a:"No leaf disease was seen in this photo. If yields are still falling, the cause may be soil, nutrients, water or a berry disease. Ask the extension officer."}},
+ unsure:{kind:"unsure",sw:{t:"Sina uhakika",a:"Picha hii haitoshi kutoa jibu. Piga picha nyingine karibu zaidi, kwenye mwanga mzuri, jani moja tu. Bado sina uhakika? Weka jani hilo na umwonyeshe afisa ugani au kiongozi wa ushirika."},
+   en:{t:"Not sure",a:"This photo is not enough to give an answer. Take another, closer, in good light, one leaf only. Still not sure? Keep the leaf and show it to the extension officer or a cooperative lead."}},
+ bean_als:{kind:"problem",sw:{t:"Madoa ya pembe ya maharagwe",a:"Madoa ya kahawia yenye pembe, yaliyozuiwa na mishipa ya jani. Huenea kupitia mbegu na mvua. Usihifadhi mbegu kutoka mimea iliyoathirika, badilisha mazao msimu ujao, na usifanye kazi shambani majani yakiwa na maji. Muulize afisa ugani."},
+   en:{t:"Bean angular leaf spot",a:"Angular brown spots, boxed in by the leaf veins. It spreads through seed and rain splash. Don't keep seed from affected plants, rotate crops next season, and avoid working in the field when leaves are wet. Ask the extension officer."}},
+ bean_rust:{kind:"problem",sw:{t:"Kutu ya maharagwe",a:"Vipele vidogo vya rangi ya kahawia-nyekundu vyenye unga, mara nyingi na duara la njano. Ondoa mabaki ya mimea baada ya mavuno na badilisha mazao. Muulize afisa ugani kuhusu aina zinazostahimili."},
+   en:{t:"Bean rust",a:"Small red-brown powdery bumps, often with a yellow ring. Remove crop residue after harvest and rotate crops. Ask the extension officer about resistant varieties."}},
+ bean_healthy:{kind:"ok",sw:{t:"Jani la maharagwe linaonekana zima",a:"Hakuna ugonjwa ulioonekana kwenye picha hii. Endelea kukagua majani kila wiki, hasa baada ya mvua."},
+   en:{t:"Bean leaf looks healthy",a:"No disease was seen in this photo. Keep checking leaves weekly, especially after rain."}}
+};
+
+/* ---------- Helpers & state ---------- */
+const $=s=>document.querySelector(s);
+const store={get:(k,d)=>{try{const v=localStorage.getItem("croppy:"+k);return v===null?d:JSON.parse(v)}catch(e){return d}},set:(k,v)=>{try{localStorage.setItem("croppy:"+k,JSON.stringify(v))}catch(e){}}};
+let lang=store.get("lang","sw"), pack=null, current=null, alerts=[], crop=store.get("crop","coffee");
+const MODELS={coffee:{dir:"model",idb:"croppy-model"},beans:{dir:"model_beans",idb:"croppy-model-beans"}};
+const M={coffee:{model:null,meta:null},beans:{model:null,meta:null}};
+const MARGIN=0.15, DEFAULT_THRESHOLD=0.75, STALE_DAYS=30, PRICE_STALE_DAYS=45;
+const CROPS=["coffee","maize","beans"];
+const t=(k,v={})=>(UI[lang][k]||k).replace(/\{(\w+)\}/g,(_,x)=>v[x]);
+const L=o=>o?(o[lang]||o.en):"";
+const money=n=>(pack?.currency||"")+" "+Math.round(n).toLocaleString();
+const daysSince=s=>(Date.now()-new Date(s).getTime())/864e5;
+function el(tag,cls,text){const e=document.createElement(tag);if(cls)e.className=cls;if(text!=null)e.textContent=text;return e}
+
+function applyText(){
+  document.documentElement.lang=lang;
+  document.querySelectorAll("[data-t]").forEach(e=>e.textContent=t(e.dataset.t));
+  $("#langBtn").textContent=UI[lang].langName;
+  if(current&&!$("#v-result").hidden) showResult(current);
+  renderAlerts(); renderSell(); renderFarm(); renderRecords(); renderCropSeg();
+}
+function renderCropSeg(){document.querySelectorAll("#cropSeg button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.crop===crop)));refreshDataText()}
+document.querySelectorAll("#cropSeg button").forEach(b=>b.onclick=()=>{crop=b.dataset.crop;store.set("crop",crop);renderCropSeg()});
+function go(view){
+  ["check","result","alerts","sell","farm","records"].forEach(v=>$("#v-"+v).hidden=v!==view);
+  document.querySelectorAll("nav button").forEach(b=>b.setAttribute("aria-current",String(b.dataset.view===view||(view==="result"&&b.dataset.view==="check"))));
+  if(view==="records")renderRecords(); if(view==="sell")renderSell(); if(view==="alerts")renderAlerts();
+  $("main").scrollTop=0;
+}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.view));
+$("#langBtn").onclick=()=>{lang=lang==="sw"?"en":"sw";store.set("lang",lang);applyText()};
+
+/* ---------- Speech: pre-recorded clips if present, phone TTS otherwise ---------- */
+let audio=null;
+function speak(text,clip){
+  if(audio)audio.pause(); if("speechSynthesis" in window)speechSynthesis.cancel();
+  const tts=()=>{if(!("speechSynthesis" in window))return;const u=new SpeechSynthesisUtterance(text);u.lang=lang==="sw"?"sw-KE":"en-GB";u.rate=0.9;
+    const v=speechSynthesis.getVoices().find(v=>v.lang.toLowerCase().startsWith(lang));if(v)u.voice=v;speechSynthesis.speak(u)};
+  if(clip){audio=new Audio(clip);audio.play().catch(tts)}else tts();
+}
+
+/* ================= REGION PACK (offline context data) ================= */
+async function initPack(){
+  const saved=store.get("pack",null);
+  if(saved) pack=saved;
+  else { try{const r=await fetch("region/pack.json");if(r.ok)pack=await r.json()}catch(e){} }
+  computeAlerts(); applyText();
+}
+$("#packFile").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  try{const p=JSON.parse(await f.text());if(!p.climate||!p.prices)throw 0;pack=p;store.set("pack",p);computeAlerts();applyText()}
+  catch(err){$("#packInfo").textContent=t("packBad")}
+};
+
+/* ---------- Alerts: transparent rules, shown with their reasons ---------- */
+function computeAlerts(){
+  alerts=[]; if(!pack){$("#alertDot").hidden=true;return}
+  const rec=pack.climate.recent||[], last=rec.slice(-14), wk=rec.slice(-7), d21=rec.slice(-21);
+  const lastDate=rec.length?rec[rec.length-1].date:pack.built;
+  if(daysSince(lastDate)>STALE_DAYS) alerts.push({lv:"medium",title:t("aStale",{d:lastDate}),body:""});
+  // Rust: spores need leaf wetness and mild temperatures (~18–28°C mean) for infection.
+  const rustDays=last.filter(d=>d.rain>=5&&d.rh>=80&&(d.tmin+d.tmax)/2>=18&&(d.tmin+d.tmax)/2<=28).length;
+  if(rustDays>=3) alerts.push({key:"rust",lv:rustDays>=5?"high":"medium",title:t("aRustT"),body:t("aRustB",{n:rustDays})});
+  const cold=wk.filter(d=>d.tmin<10).length;
+  if(cold>=2) alerts.push({key:"cold",lv:"medium",title:t("aColdT"),body:t("aColdB",{n:cold})});
+  const m=new Date().getMonth()+1, norm=(pack.climate.normals||[]).find(x=>x.m===m);
+  const rain21=d21.reduce((a,d)=>a+d.rain,0);
+  if(norm&&norm.rain>=60&&rain21<norm.rain*0.25) alerts.push({lv:"medium",title:t("aDryT"),body:t("aDryB",{mm:Math.round(rain21)})});
+  const hot=wk.filter(d=>d.tmax>30).length;
+  if(hot>=3) alerts.push({lv:"medium",title:t("aHeatT"),body:t("aHeatB",{n:hot})});
+  const mine=myCrops();
+  Object.entries(pack.crops||{}).forEach(([k,c])=>{if((!mine.length||mine.includes(k))&&c.harvest_months?.includes(m))alerts.push({lv:"info",title:t("aHarvT",{c:L(c.label)}),body:t("aHarvB")})});
+  $("#alertDot").hidden=!alerts.some(a=>a.lv==="high");
+}
+function renderAlerts(){
+  computeAlerts();
+  const list=$("#alertList");list.innerHTML="";
+  if(!pack){list.append(el("p","empty",t("noPack")));$("#climateBox").hidden=$("#soilBox").hidden=true;return}
+  if(!alerts.length) list.append(el("p","empty",t("noAlerts")));
+  alerts.forEach(a=>{const d=el("div","alert "+a.lv);d.append(el("span","level",t(a.lv==="high"?"lvHigh":a.lv==="medium"?"lvMedium":"lvInfo")),el("b",null,a.title));if(a.body)d.append(el("p",null,a.body));list.append(d)});
+  const rec=pack.climate.recent||[], m=new Date().getMonth()+1, norm=(pack.climate.normals||[]).find(x=>x.m===m);
+  const cb=$("#climateBox");cb.hidden=!rec.length;cb.innerHTML="";
+  if(rec.length){cb.append(el("h3",null,t("climTitle")),el("p",null,t("climBody",{r:Math.round(rec.reduce((a,d)=>a+d.rain,0)),n:norm?norm.rain:"–",lo:Math.min(...rec.map(d=>d.tmin)),hi:Math.max(...rec.map(d=>d.tmax))})),el("p","small",pack.climate.source||""))}
+  const s=pack.soil, sb=$("#soilBox");sb.hidden=!s;sb.innerHTML="";
+  if(s){sb.append(el("h3",null,t("soilTitle")+(s.depth?" ("+s.depth+")":"")));
+    sb.append(el("p",null,s.ph<5.5?t("soilAcid",{ph:s.ph}):t("soilOk",{ph:s.ph})));
+    if(s.n_gkg!=null&&s.n_gkg<1)sb.append(el("p",null,t("soilN",{v:s.n_gkg})));
+    if(s.soc_gkg!=null&&s.soc_gkg<10)sb.append(el("p",null,t("soilSoc",{v:s.soc_gkg})));
+    sb.append(el("p","small",s.source||""))}
+}
+
+/* ================= SELL: fair-price check (reference data, not prediction) ================= */
+function priceItems(){return pack?Object.entries(pack.prices||{}):[]}
+function renderSell(){
+  const sel=$("#sellItem"),keep=sel.value;sel.innerHTML="";
+  priceItems().forEach(([k,p])=>{const o=el("option",null,L(p.label));o.value=k;sel.append(o)});
+  if(keep)sel.value=keep;
+  const hc=$("#harvCrop"),hk=hc.value;hc.innerHTML="";
+  CROPS.forEach(c=>{const o=el("option",null,L(pack?.crops?.[c]?.label)||c);o.value=c;hc.append(o)});if(hk)hc.value=hk;
+  const pb=$("#priceBox");pb.innerHTML="";
+  const p=pack?.prices?.[sel.value];
+  if(!p){pb.append(el("p",null,t("noPack")));$("#offerBox").innerHTML="";renderStock();return}
+  pb.append(el("p",null,t("fairRange")),el("p","price",money(p.low)+" – "+money(p.high)));
+  if(p.trend?.length>=4){const sp=el("div","spark"),mx=Math.max(...p.trend),mn=Math.min(...p.trend)*0.9;
+    p.trend.forEach(v=>{const i=el("i");i.style.height=(15+85*(v-mn)/(mx-mn||1))+"%";sp.append(i)});pb.append(sp);
+    const a=p.trend.at(-1),b=p.trend.at(-4),ch=(a-b)/b;pb.append(el("p",null,ch>0.03?t("trendUp"):ch<-0.03?t("trendDown"):t("trendFlat")))}
+  if(daysSince(p.date+"-28")>PRICE_STALE_DAYS)pb.append(el("p","warn",t("priceStale",{d:p.date})));
+  pb.append(el("p","small",(p.source||"")+" · "+p.date));
+  renderOffer();renderStock();
+}
+function offerResult(){
+  const p=pack?.prices?.[$("#sellItem").value], kg=+$("#sellKg").value, off=+$("#sellOffer").value;
+  if(!p||!off)return null;
+  const pct=Math.round(100*(p.low-off)/p.low);
+  const cls=off<p.low?"low":off>p.high?"high":"";
+  const head=off<p.low?t("offerLow",{p:pct}):off>p.high?t("offerHigh"):t("offerOk");
+  const body=(off<p.low?t("offerLowB")+" ":"")+(kg?t("offerTotal",{t:money(kg*off),a:money(kg*p.low),b:money(kg*p.high)}):"");
+  return {p,kg,off,cls,head,body};
+}
+function renderOffer(){
+  const box=$("#offerBox");box.innerHTML="";const r=offerResult();if(!r)return;
+  const d=el("div","offer "+r.cls);d.append(el("b",null,r.head));if(r.body)d.append(el("p",null,r.body));box.append(d);
+}
+["sellItem","sellKg","sellOffer"].forEach(id=>$("#"+id).addEventListener(id==="sellItem"?"change":"input",()=>id==="sellItem"?renderSell():renderOffer()));
+$("#sellPlay").onclick=()=>{const r=offerResult(),p=pack?.prices?.[$("#sellItem").value];if(!p)return;
+  speak(r?r.head+" "+r.body:t("fairRange")+": "+p.low+" – "+p.high)};
+$("#sellSave").onclick=()=>{const r=offerResult();if(!r||!r.kg)return;
+  const s=store.get("sales",[]);s.unshift({id:Date.now(),time:new Date().toISOString(),item:$("#sellItem").value,crop:r.p.crop,kg:r.kg,price:r.off,ref_low:r.p.low,ref_high:r.p.high});store.set("sales",s);
+  $("#sellSave").querySelector("span").textContent=t("saleSaved");setTimeout(()=>{$("#sellSave").querySelector("span").textContent=t("recordSale")},1500);renderStock()};
+$("#harvSave").onclick=()=>{const kg=+$("#harvKg").value;if(!kg)return;
+  const h=store.get("harvests",[]);h.unshift({id:Date.now(),time:new Date().toISOString(),crop:$("#harvCrop").value,kg});store.set("harvests",h);$("#harvKg").value="";renderStock()};
+function renderStock(){
+  const box=$("#stockBox");box.innerHTML="";const H=store.get("harvests",[]),S=store.get("sales",[]),farm=store.get("farm",{});
+  CROPS.forEach(c=>{const h=H.filter(x=>x.crop===c).reduce((a,x)=>a+x.kg,0);if(!h)return;
+    const s=S.filter(x=>x.crop===c).reduce((a,x)=>a+x.kg,0),rem=Math.max(0,h-s);
+    const p=Object.values(pack?.prices||{}).find(x=>x.crop===c);
+    box.append(el("p",null,t("stockLine",{c:L(pack?.crops?.[c]?.label)||c,h,s,r:rem,v:p?money(rem*p.low)+" – "+money(rem*p.high):"–"})));
+    const acres=+(farm.crops?.[c]?.acres||0), nat=pack?.crops?.[c]?.national_yield_kg_ha;
+    if(acres&&nat)box.append(el("p","small",t("yieldLine",{y:Math.round(h/(acres*0.4047)),n:nat})))});
+}
+
+/* ================= MY FARM: profile = consent-based registry record ================= */
+function myCrops(){const f=store.get("farm",{});return CROPS.filter(c=>+(f.crops?.[c]?.acres)>0)}
+function renderFarm(){
+  const f=store.get("farm",{});
+  $("#fName").value=f.name||"";$("#fVillage").value=f.village||"";$("#fMember").value=f.member||"";$("#fPhone").value=f.phone||"";$("#fConsent").checked=!!f.consent;
+  const rows=$("#cropRows");rows.innerHTML="";
+  CROPS.forEach(c=>{const r=el("div","crop");r.append(el("span","lbl",L(pack?.crops?.[c]?.label)||c));
+    const a=el("input");a.type="number";a.inputMode="decimal";a.min="0";a.step="0.1";a.value=f.crops?.[c]?.acres||"";a.setAttribute("aria-label",c+" acres");a.oninput=()=>saveFarm(c,"acres",a.value);r.append(a);
+    if(c==="coffee"){const tr=el("input");tr.type="number";tr.inputMode="numeric";tr.min="0";tr.value=f.crops?.[c]?.trees||"";tr.setAttribute("aria-label","coffee trees");tr.oninput=()=>saveFarm(c,"trees",tr.value);r.append(tr)}else r.append(el("span"));
+    rows.append(r)});
+  $("#sOfficer").value=store.get("officer","");$("#sCoop").value=store.get("coop","");$("#sGps").checked=store.get("gps",false);
+  $("#regStatus").textContent=f.sharedAt?t("regSent",{d:new Date(f.sharedAt).toLocaleDateString()}):"";
+}
+function saveFarm(crop,field,val){const f=store.get("farm",{});f.crops=f.crops||{};f.crops[crop]=f.crops[crop]||{};f.crops[crop][field]=val;store.set("farm",f);computeAlerts()}
+[["fName","name"],["fVillage","village"],["fMember","member"],["fPhone","phone"]].forEach(([id,k])=>$("#"+id).oninput=e=>{const f=store.get("farm",{});f[k]=e.target.value.trim();store.set("farm",f)});
+$("#fConsent").onchange=e=>{const f=store.get("farm",{});f.consent=e.target.checked;store.set("farm",f)};
+$("#sOfficer").oninput=e=>store.set("officer",e.target.value.trim());
+$("#sCoop").oninput=e=>store.set("coop",e.target.value.trim());
+$("#sGps").onchange=e=>store.set("gps",e.target.checked);
+$("#regBtn").onclick=async()=>{
+  const f=store.get("farm",{}),coop=store.get("coop","");
+  if(!f.consent){$("#regStatus").textContent=t("needConsent");return}
+  if(!coop){$("#regStatus").textContent=t("needCoop");return}
+  const g=await getGps();
+  const crops=CROPS.filter(c=>+(f.crops?.[c]?.acres)>0).map(c=>`${c}:${f.crops[c].acres}ac${f.crops[c].trees?"/"+f.crops[c].trees+"t":""}`).join(",");
+  const body=`CROPPY-REG|${f.name||""}|${f.village||""}|${f.member||""}|${f.phone||""}|${crops}${g?`|${g.lat},${g.lon}`:""}`;
+  f.sharedAt=new Date().toISOString();store.set("farm",f);renderFarm();
+  location.href=`sms:${encodeURIComponent(coop)}?body=${encodeURIComponent(body)}`;
+};
+
+/* ================= LEAF MODEL (the AI) ================= */
+async function loadAny(src){try{return await tf.loadGraphModel(src)}catch(e){return await tf.loadLayersModel(src)}}
+async function initModel(){
+  setStatus(t("loading"));
+  for(const c of Object.keys(MODELS)){
+    const {dir,idb}=MODELS[c];
+    try{const r=await fetch(dir+"/metadata.json",{cache:"no-cache"});if(r.ok){const m=await r.json();M[c]={meta:m,model:await loadAny(dir+"/model.json")}}}catch(e){}
+    if(!M[c].model){const m=store.get("meta_"+c,null);if(m){try{M[c]={meta:m,model:await loadAny("indexeddb://"+idb)}}catch(e){}}}
+    if(M[c].model){const mm=M[c];tf.tidy(()=>{const s=mm.meta.input_size||224;run(mm.model,tf.zeros([1,s,s,3]))})}
+  }
+  refreshDataText();
+}
+function setStatus(msg,warn){const e=$("#modelStatus");e.textContent=msg;e.classList.toggle("warn",!!warn)}
+function refreshDataText(){
+  setStatus(M[crop].model?t("ready"):t("noModel"),!M[crop].model);
+  const d=c=>M[c].model?t("modelLoaded",{n:M[c].meta.labels.length,t:Math.round((M[c].meta.threshold||DEFAULT_THRESHOLD)*100)}):t("none");
+  $("#modelInfo").textContent=t("modelsLine",{c:d("coffee"),b:d("beans")});
+  $("#packInfo").textContent=pack?t("packLoaded",{r:L(pack.region),d:pack.built}):t("noPack");
+  $("#demoBanner").hidden=!pack?.synthetic;
+}
+$("#modelFiles").onchange=async e=>{
+  const files=[...e.target.files];const json=files.find(f=>f.name==="model.json"),metaF=files.find(f=>f.name==="metadata.json"),bins=files.filter(f=>f.name.endsWith(".bin"));
+  try{if(!json||!metaF||!bins.length)throw 0;const m=JSON.parse(await metaF.text());const c=MODELS[m.crop]?m.crop:"coffee";
+    const mdl=await loadAny(tf.io.browserFiles([json,...bins]));await mdl.save("indexeddb://"+MODELS[c].idb);
+    M[c]={model:mdl,meta:m};store.set("meta_"+c,m);refreshDataText()}
+  catch(err){$("#modelInfo").textContent=t("modelBad")}
+  e.target.value="";
+};
+function run(model,x){const out=model.predict?model.predict(x):model.execute(x);const y=Array.isArray(out)?out[0]:out;const s=y.sum().dataSync()[0];return Math.abs(s-1)<0.01?y:tf.softmax(y)}
+function prepCanvas(img,size){const c=document.createElement("canvas");c.width=c.height=size;const g=c.getContext("2d"),m=Math.min(img.naturalWidth,img.naturalHeight);
+  g.drawImage(img,(img.naturalWidth-m)/2,(img.naturalHeight-m)/2,m,m,0,0,size,size);return c}
+/* Non-AI photo checks so the model never guesses on a bad photo */
+function quality(c){const s=c.width,d=c.getContext("2d").getImageData(0,0,s,s).data,g=new Float32Array(s*s);let sum=0;
+  for(let i=0;i<s*s;i++){const v=0.299*d[i*4]+0.587*d[i*4+1]+0.114*d[i*4+2];g[i]=v;sum+=v}
+  let a=0,b=0,n=0;for(let y=1;y<s-1;y++)for(let x=1;x<s-1;x++){const i=y*s+x,l=4*g[i]-g[i-1]-g[i+1]-g[i-s]-g[i+s];a+=l;b+=l*l;n++}
+  return{dark:sum/(s*s)<45,blurry:b/n-(a/n)**2<25}}
+async function classify(img){
+  const {model,meta}=M[crop],size=meta.input_size||224,c=prepCanvas(img,size),q=quality(c);
+  const probs=tf.tidy(()=>run(model,tf.browser.fromPixels(c).toFloat().expandDims(0))).dataSync();
+  const r=[...probs].map((p,i)=>({key:meta.labels[i],p})).sort((a,b)=>b.p-a.p);
+  const thr=meta.threshold||DEFAULT_THRESHOLD,top=r[0],sec=r[1]||{p:0};
+  let key=top.key,reason=null;
+  if(q.dark){key="unsure";reason="tooDark"}else if(q.blurry){key="unsure";reason="tooBlurry"}
+  else if(top.p<thr||top.p-sec.p<MARGIN){key="unsure";reason="maybe"}
+  return{id:Date.now(),time:new Date().toISOString(),crop,key,top:top.key,conf:top.p,second:sec.key,reason,thumb:prepCanvas(img,128).toDataURL("image/jpeg",0.7),photo:img.src,status:null};
+}
+$("#cam").onchange=async e=>{
+  const f=e.target.files[0];e.target.value="";if(!f)return;
+  if(!M[crop].model){setStatus(t("noModel"),true);return}
+  const img=new Image();img.src=URL.createObjectURL(f);await img.decode();
+  current=await classify(img);showResult(current);
+};
+const cropWord=c=>t(c==="beans"?"wBeans":"wCoffee");
+const labelOf=(k,c)=>k==="other"?t("otherT",{c:cropWord(c||crop)}):(ADVICE[k]||ADVICE.unsure)[lang].t;
+const adviceOf=(k,c)=>k==="other"?{kind:"unsure",t:labelOf(k,c),a:t("otherB",{c:cropWord(c||crop)})}:{kind:(ADVICE[k]||ADVICE.unsure).kind,...(ADVICE[k]||ADVICE.unsure)[lang]};
+function contextNote(k){
+  computeAlerts();
+  if(k==="rust"&&alerts.some(a=>a.key==="rust"))return t("ctxRust");
+  if(k==="phoma"&&alerts.some(a=>a.key==="cold"))return t("ctxPhoma");
+  if(k==="healthy"&&pack)return t("ctxHealthy");
+  return "";
+}
+function showResult(r){
+  const a=adviceOf(r.key,r.crop);
+  $("#photo").src=r.photo||r.thumb;
+  $("#verdict").className="verdict "+(a.kind==="problem"?"problem":a.kind==="unsure"?"unsure":"");
+  $("#vTitle").textContent=a.t;
+  $("#vConfLabel").textContent=t("confidence")+": "+Math.round(r.conf*100)+"%";$("#vBar").style.width=Math.round(r.conf*100)+"%";
+  $("#vAdvice").textContent=(r.reason==="tooDark"||r.reason==="tooBlurry"?t(r.reason)+" ":"")+a.a;
+  const ctx=contextNote(r.key),ce=$("#vContext");ce.hidden=!ctx;ce.textContent=ctx;
+  const alt=$("#vAlt");if(r.reason==="maybe"){alt.hidden=false;alt.textContent=t("maybe",{a:labelOf(r.top,r.crop),b:labelOf(r.second,r.crop)})}else alt.hidden=true;
+  const saved=store.get("records",[]).some(x=>x.id===r.id);$("#saveBtn").disabled=saved;$("#saveBtn").querySelector("span").textContent=saved?t("saved"):t("save");
+  go("result");
+}
+$("#againBtn").onclick=()=>{current=null;go("check")};
+$("#playBtn").onclick=()=>{if(current)speak($("#vTitle").textContent+". "+$("#vAdvice").textContent+" "+$("#vContext").textContent,`audio/${lang}/${current.key}.mp3`)};
+
+/* ================= RECORDS ================= */
+async function getGps(){if(!store.get("gps",false)||!navigator.geolocation)return null;
+  return new Promise(res=>navigator.geolocation.getCurrentPosition(p=>res({lat:+p.coords.latitude.toFixed(4),lon:+p.coords.longitude.toFixed(4)}),()=>res(null),{timeout:8000,maximumAge:600000}))}
+async function saveCurrent(){const recs=store.get("records",[]);if(recs.some(x=>x.id===current.id))return;
+  recs.unshift({...current,photo:undefined,gps:await getGps(),status:"queued"});store.set("records",recs.slice(0,200));
+  $("#saveBtn").disabled=true;$("#saveBtn").querySelector("span").textContent=t("saved")}
+$("#saveBtn").onclick=saveCurrent;
+$("#smsBtn").onclick=async()=>{
+  const num=store.get("officer","");if(!num){alert(t("needOfficer"));go("farm");return}
+  await saveCurrent();
+  const recs=store.get("records",[]),q=recs.filter(r=>r.status==="queued").slice(0,3),f=store.get("farm",{});
+  const lines=q.map(r=>`${new Date(r.time).toLocaleDateString()}: ${labelOf(r.key,r.crop)} (${Math.round(r.conf*100)}%)${r.gps?` @${r.gps.lat},${r.gps.lon}`:""}`);
+  const body=`${t("smsHead")}\n${f.name||""} ${f.village||""} ${f.member||""}\n${lines.join("\n")}`;
+  q.forEach(r=>r.status="sent");store.set("records",recs);
+  location.href=`sms:${encodeURIComponent(num)}?body=${encodeURIComponent(body)}`;
+};
+function renderRecords(){
+  const list=$("#recList");list.innerHTML="";
+  const items=[...store.get("records",[]).map(r=>({...r,type:"leaf"})),...store.get("sales",[]).map(r=>({...r,type:"sale"})),...store.get("harvests",[]).map(r=>({...r,type:"harvest"}))].sort((a,b)=>b.id-a.id);
+  if(!items.length){list.append(el("p","empty",t("emptyRec")));return}
+  items.forEach(r=>{const row=el("div","rec"),txt=el("div");
+    if(r.type==="leaf"){const im=el("img");im.alt="";im.src=r.thumb;row.append(im);txt.append(el("b",null,labelOf(r.key,r.crop)),el("span",null,new Date(r.time).toLocaleString()+" · "+Math.round(r.conf*100)+"%"),el("br"));
+      const tg=el("em","tag"+(r.status!=="sent"?" queued":""),t(r.status==="sent"?"sent":"queued"));txt.append(tg)}
+    else{row.append(el("div","ic",r.type==="sale"?"💰":"🧺"));const lab=L(pack?.crops?.[r.crop]?.label)||r.crop;
+      txt.append(el("b",null,(r.type==="sale"?t("sale"):t("harvest"))+": "+lab+", "+r.kg+" kg"),el("span",null,new Date(r.time).toLocaleDateString()+(r.type==="sale"?" · "+money(r.price)+"/kg":"")))}
+    row.append(txt);list.append(row)});
+}
+$("#csvBtn").onclick=()=>{
+  const rows=[["type","time","crop_or_result","kg","price_per_kg","confidence","lat","lon","status"]];
+  store.get("records",[]).forEach(r=>rows.push(["leaf_"+(r.crop||"coffee"),r.time,r.key,"","",r.conf.toFixed(3),r.gps?.lat??"",r.gps?.lon??"",r.status]));
+  store.get("harvests",[]).forEach(r=>rows.push(["harvest",r.time,r.crop,r.kg,"","","","",""]));
+  store.get("sales",[]).forEach(r=>rows.push(["sale",r.time,r.crop,r.kg,r.price,"","","",""]));
+  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([rows.map(r=>r.join(",")).join("\n")],{type:"text/csv"}));a.download="croppy-records.csv";a.click();
+};
+$("#wipeBtn").onclick=()=>{if(confirm(t("wipeAsk"))){["records","sales","harvests"].forEach(k=>store.set(k,[]));renderRecords();renderStock()}};
+
+/* ---------- Boot ---------- */
+applyText();initPack();initModel();
+if("serviceWorker" in navigator)navigator.serviceWorker.register("sw.js").catch(()=>{});
+</script>
+</body>
+</html>
