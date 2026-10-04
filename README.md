@@ -2,7 +2,7 @@
 
 **Track:** Agriculture (Annex B), Small AI for Development Hackathon (Hack-Nation × World Bank, Oct 2026)
 **Platform:** the household's existing Android smartphone (an offline web app, no install store needed), plus SMS, which reaches any basic phone. No extra hardware.
-Note: AI Tools have been used to develop this application
+***Note:*** AI Tools have been used to develop this application
 
 ## The decision chain (Annex B: "what is affecting her crop" and "what it is worth")
 1. **Check:** choose Coffee or Beans and photograph a leaf. On-phone AI models identify coffee rust, leaf miner, Cercospora, Phoma or healthy, and bean angular leaf spot, bean rust or healthy. A model says **"Not a coffee/bean leaf"** for other plants, and **"Not sure, ask a person"** when unsure. Advice is spoken in Kiswahili or English, and weather context is added ("the last two weeks favour rust").
